@@ -2,7 +2,9 @@ import pandas as pd
 import tkinter as tk
 
 from tkinter import filedialog
+
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
 
 
 def import_file():
@@ -26,16 +28,34 @@ def import_file():
 
         # Create a text corpus from the second column
         corpus = df[headers[1]].tolist()
+        identifiers = df[headers[0]].tolist()
+
         # Fit the TF-IDF vectorizer on the corpus
         tfidf_matrix = vectorizer.fit_transform(corpus)
-        print("TF-IDF matrix shape:", tfidf_matrix.shape)
-        print("TF-IDF feature names:", vectorizer.get_feature_names_out())
-        print(tfidf_matrix.toarray())
 
+        # Compute cosine similarity for all documents relative to each other
+        cosine_sim = linear_kernel(tfidf_matrix)
 
+        # Get indices of the most similar documents
+        most_similar_indices = cosine_sim.argsort()
 
-        # Write cleaned DataFrame back to CSV cache
-        df.to_csv(f"cache/cleaned_{filename}", index=True)
+        tfidf_result = []
+        for index, item in enumerate(most_similar_indices):
+            similar_items = []
+            for index in item[-6:]:
+                similar_items.append(identifiers[index])
+
+            tfidf_result.append(
+                {"identifier": identifiers[index], "similar_items": similar_items}
+            )
+
+        # Print the results for the first three items
+        for index, similarity in enumerate(tfidf_result):
+            print(similarity)
+
+            if index == 2:
+                break
+
 
 
 
