@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import tkinter as tk
 
@@ -5,6 +6,8 @@ from tkinter import filedialog
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
+
+from thefuzz import fuzz
 
 
 def import_file():
@@ -42,6 +45,9 @@ def import_file():
         tfidf_result = []
         for index, item in enumerate(most_similar_indices):
             similar_items = []
+
+            # Get the last 6 items (most similar) for each document
+            # Add their IDs to the similar_items list
             for index in item[-6:]:
                 similar_items.append(identifiers[index])
 
@@ -49,14 +55,39 @@ def import_file():
                 {"identifier": identifiers[index], "similar_items": similar_items}
             )
 
-        # Print the results for the first three items
+        # Print the results for the first three items (for test brevity)
+        print("--- TFIDF Matching Results ---")
         for index, similarity in enumerate(tfidf_result):
             print(similarity)
 
             if index == 2:
                 break
 
+        # Fuzzy matching computation
+        fuzzy_result = []
+        for i in range(df.shape[0]):
+            ratios_list = []
 
+            for j in range(df.shape[0]):
+                ratios_list.append(fuzz.ratio(corpus[i], corpus[j]))
+
+            ratios_array = np.array(ratios_list)
+            most_similar_indices = ratios_array.argsort()[-6:]
+            similar_items = []
+            for index in most_similar_indices:
+                similar_items.append(identifiers[index])
+
+            fuzzy_result.append(
+                {"identifier": identifiers[i], "similar_items": similar_items}
+            )
+
+        print("------------------------------")
+        print("--- Fuzzy Matching Results ---")
+        for index, similarity in enumerate(fuzzy_result):
+            print(similarity)
+
+            if index == 2:
+                break
 
 
 # Create the main Tkinter window
