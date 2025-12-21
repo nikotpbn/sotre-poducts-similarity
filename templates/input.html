@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <form method="post" enctype="multipart/form-data">
+      <div id="file-inputs">
+        <label for="file1">Dataset 1</label>
+        <input type="file" name="file1" />
+      </div>
+      <div>
+        <button>Submit</button>
+      </div>
+    </form>
+
+    <button id="add-dataset">Add more datasets</button>
+  </body>
+
+  <script>
+    let fileindex = 1;
+
+    function addDataset() {
+      fileindex += 1;
+
+      const fileInputs = document.querySelector("#file-inputs");
+
+      const newDiv = document.createElement("div");
+      const newLabel = document.createElement("label");
+      const newInput = document.createElement("input");
+
+
+      newLabel.setAttribute("for", "file" + fileindex);
+      newLabel.innerText = "Dataset " + fileindex;
+
+      newInput.setAttribute("type", "file");
+      newInput.setAttribute("name", "file" + fileindex);
+
+      newDiv.appendChild(newLabel);
+      newDiv.appendChild(newInput);
+
+      fileInputs.insertAdjacentElement("beforeend", newDiv);
+    }
+
+    document
+      .querySelector("#add-dataset")
+      .addEventListener("click", addDataset);
+  </script>
+</html>
