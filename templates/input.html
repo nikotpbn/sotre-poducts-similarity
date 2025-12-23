@@ -6,21 +6,40 @@
     <title>Document</title>
   </head>
   <body>
-    <form method="post" enctype="multipart/form-data">
-      <div id="file-inputs">
-        <label for="file1">Dataset 1</label>
-        <input type="file" name="file1" />
-      </div>
-      <div>
-        <button>Submit</button>
-      </div>
-    </form>
+    <div id="file-inputs">
+      <label for="file1">Main Dataset</label>
+      <input type="file" name="file1" id="file1" />
+    </div>
+    <div>
+      <button onclick="submitForm()">Submit</button>
+    </div>
 
-    <button id="add-dataset">Add more datasets</button>
+    <button id="add-dataset">Add Dataset</button>
   </body>
 
   <script>
     let fileindex = 1;
+
+    async function submitForm(event) {
+      const formData = new FormData();
+
+      console.log("List fields here");
+
+      const fileInputs = document.querySelector("#file-inputs");
+      const inputs = fileInputs.querySelectorAll("input[type='file']");
+      inputs.forEach((input) => {
+        let fileInput = document.querySelector(`input#${input.id}`);
+        formData.append("files", fileInput.files[0]);
+      });
+      try {
+        fetch("/results", {
+          method: "POST",
+          body: formData,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
 
     function addDataset() {
       fileindex += 1;
@@ -31,12 +50,12 @@
       const newLabel = document.createElement("label");
       const newInput = document.createElement("input");
 
-
       newLabel.setAttribute("for", "file" + fileindex);
       newLabel.innerText = "Dataset " + fileindex;
 
       newInput.setAttribute("type", "file");
       newInput.setAttribute("name", "file" + fileindex);
+      newInput.setAttribute("id", "file" + fileindex);
 
       newDiv.appendChild(newLabel);
       newDiv.appendChild(newInput);
