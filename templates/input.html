@@ -7,8 +7,12 @@
   </head>
   <body>
     <div id="file-inputs">
-      <label for="file1">Main Dataset</label>
-      <input type="file" name="file1" id="file1" />
+      <div>
+        <label for="file1">Main Dataset</label>
+        <input type="file" name="file1" id="file1" />
+        <label for="file1">Description Index</label>
+        <input type="number" min="0" name="index1" id="index1" />
+      </div>
     </div>
     <div>
       <button onclick="submitForm()">Submit</button>
@@ -25,11 +29,17 @@
 
       console.log("List fields here");
 
-      const fileInputs = document.querySelector("#file-inputs");
-      const inputs = fileInputs.querySelectorAll("input[type='file']");
-      inputs.forEach((input) => {
+      const inputs = document.querySelector("#file-inputs");
+      const fileInputs = inputs.querySelectorAll("input[type='file']");
+      const indexInputs = inputs.querySelectorAll("input[type='number']");
+
+      fileInputs.forEach((input) => {
         let fileInput = document.querySelector(`input#${input.id}`);
         formData.append("files", fileInput.files[0]);
+      });
+      indexInputs.forEach((input) => {
+        let indexInput = document.querySelector(`input#${input.id}`);
+        formData.append("indices", indexInput.value);
       });
       try {
         fetch("/results", {
@@ -44,23 +54,36 @@
     function addDataset() {
       fileindex += 1;
 
-      const fileInputs = document.querySelector("#file-inputs");
+      const inputs = document.querySelector("#file-inputs");
 
       const newDiv = document.createElement("div");
-      const newLabel = document.createElement("label");
-      const newInput = document.createElement("input");
+      const fileLabel = document.createElement("label");
+      const fileInput = document.createElement("input");
 
-      newLabel.setAttribute("for", "file" + fileindex);
-      newLabel.innerText = "Dataset " + fileindex;
+      const indexLabel = document.createElement("label");
+      const indexInput = document.createElement("input");
 
-      newInput.setAttribute("type", "file");
-      newInput.setAttribute("name", "file" + fileindex);
-      newInput.setAttribute("id", "file" + fileindex);
+      fileLabel.setAttribute("for", "file" + fileindex);
+      fileLabel.innerText = "Dataset " + fileindex;
 
-      newDiv.appendChild(newLabel);
-      newDiv.appendChild(newInput);
+      fileInput.setAttribute("type", "file");
+      fileInput.setAttribute("name", "file" + fileindex);
+      fileInput.setAttribute("id", "file" + fileindex);
 
-      fileInputs.insertAdjacentElement("beforeend", newDiv);
+      indexLabel.setAttribute("for", "index" + fileindex);
+      indexLabel.innerText = "Description Index";
+
+      indexInput.setAttribute("type", "number");
+      indexInput.setAttribute("min", "0");
+      indexInput.setAttribute("name", "index" + fileindex);
+      indexInput.setAttribute("id", "index" + fileindex);
+
+      newDiv.appendChild(fileLabel);
+      newDiv.appendChild(fileInput);
+      newDiv.appendChild(indexLabel);
+      newDiv.appendChild(indexInput);
+
+      inputs.insertAdjacentElement("beforeend", newDiv);
     }
 
     document
