@@ -2,6 +2,7 @@ import re
 import json
 import pandas as pd
 
+
 # https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
 # To suppress SettingWithCopyWarning
 pd.options.mode.copy_on_write = True
@@ -10,7 +11,19 @@ pd.options.mode.copy_on_write = True
 STOP_WORDS = json.load(open("engine/utils/stop_words_english.json"))
 
 
-def read_file(upload):
+async def pre_process_file(upload, description_index):
+    try:
+        df = await _read_file(upload)
+        df = await _clean_data(df, description_index)
+        df = await _normalize(df)
+    except Exception as e:
+        print(f"error: {e}")
+        raise ValueError("Preprocessing failed")
+
+    return df
+
+
+async def _read_file(upload):
     extension = upload.filename.split(".")[-1].lower()
 
     try:
@@ -25,11 +38,10 @@ def read_file(upload):
 
     except Exception as e:
         print(f"Error reading file: {e}")
+        raise ValueError("Couldn't read the uploaded file")
 
-    return None
 
-
-def clean_data(dataframe, description_index):
+async def _clean_data(dataframe, description_index):
     headers = list(dataframe.columns)
 
     # Drop all columns but description index
@@ -48,7 +60,7 @@ def clean_data(dataframe, description_index):
     return dataframe
 
 
-def normalize(dataframe):
+async def _normalize(dataframe):
 
     # Lowercase the description column
     dataframe["description"] = dataframe["description"].str.lower()
