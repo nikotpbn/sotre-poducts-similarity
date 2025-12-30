@@ -11,19 +11,7 @@ pd.options.mode.copy_on_write = True
 STOP_WORDS = json.load(open("engine/utils/stop_words_english.json"))
 
 
-async def pre_process_file(upload, description_index):
-    try:
-        df = await _read_file(upload)
-        df = await _clean_data(df, description_index)
-        df = await _normalize(df)
-    except Exception as e:
-        print(f"error: {e}")
-        raise ValueError("Preprocessing failed")
-
-    return df
-
-
-async def _read_file(upload):
+async def read_file(upload):
     extension = upload.filename.split(".")[-1].lower()
 
     try:
@@ -41,26 +29,18 @@ async def _read_file(upload):
         raise ValueError("Couldn't read the uploaded file")
 
 
-async def _clean_data(dataframe, description_index):
+async def standardize(dataframe, description_index):
     headers = list(dataframe.columns)
 
-    # Drop all columns but description index
+    # Drop all columns and rename description column
     description_column = headers[description_index]
     dataframe = dataframe.loc[:, dataframe.columns == description_column]
-
-    # Remove rows with any missing values
-    dataframe.dropna(axis="index", how="any", inplace=True)
-
-    # Remove duplicates
-    dataframe.drop_duplicates(subset=headers[description_index], inplace=True)
-
-    # Rename Columns to standard names
     dataframe.rename(columns={description_column: "description"}, inplace=True)
 
     return dataframe
 
 
-async def _normalize(dataframe):
+async def normalize(dataframe):
 
     # Lowercase the description column
     dataframe["description"] = dataframe["description"].str.lower()
