@@ -1,4 +1,5 @@
 import pandas as pd
+from pprint import pprint
 from fastapi import FastAPI, Request, UploadFile
 
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -6,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 
 from engine.pre_process import read_file, standardize, normalize
 from engine.tfidf_euclidean import compute_tfidf_euclidean
+from engine.fuzzy_levenshtein import compute_fuzzy_levenshtein
 
 app = FastAPI()
 
@@ -42,12 +44,19 @@ async def show_results(request: Request, files: list[UploadFile], indices: list[
 
     # Remove duplicates after normalization
     concat_df.drop_duplicates(subset="description", inplace=True)
+    print(concat_df.to_string())
 
-    # TFIDF Similarity for a single file
-    result = await compute_tfidf_euclidean(concat_df)
+    # TFIDF Similarity
+    tfidf_result = await compute_tfidf_euclidean(concat_df)
 
-    # TFIDF First Five results
-    print(result[-5:])
+    # Fuzzy similarity
+    fuzzy_result = await compute_fuzzy_levenshtein(concat_df)
 
-    ctx = {"results": {"tfidf": result[:10]}}
+    # TFIDF First Five resultsd
+    pprint(tfidf_result[-5:])
+    print("------------------------------")
+    print("--- Fuzzy Matching Results ---")
+    pprint(fuzzy_result[-5:])
+
+    ctx = {"results": {"tfidf": tfidf_result[:10]}}
     return templates.TemplateResponse(request=request, name="results.html", context=ctx)
