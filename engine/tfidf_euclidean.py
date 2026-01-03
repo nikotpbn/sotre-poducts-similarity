@@ -21,12 +21,12 @@ async def compute_tfidf_euclidean(df):
         main_item_index = row
         item = {
             "name": corpus[main_item_index],
-            "similar_item": {"name": "", "distance": 0},
+            "tf_idf": {"name": "", "similarity": 0},
         }
 
         max_index = np.argsort(cosine_sim[row])[-2]
-        item["similar_item"]["distance"] = cosine_sim[row][max_index] * 100
-        item["similar_item"]["name"] = corpus[max_index]
+        item["tf_idf"]["similarity"] = cosine_sim[row][max_index] * 100
+        item["tf_idf"]["name"] = corpus[max_index]
 
         result.append(item)
 
