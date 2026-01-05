@@ -1,4 +1,8 @@
+import pandas as pd
+
+
 SIMILARITY_TRESHOLD = 80
+HEADERS = ["Index, Item A", "Item B", "Match Type", "Similarity Score"]
 
 
 async def generate_report_data(result):
@@ -32,3 +36,19 @@ async def generate_report_data(result):
             report.append(result)
 
     return report
+
+
+async def report_data_to_dataframe(data):
+    dataframe_data = {}
+
+    for idx, item in enumerate(data):
+        row = []
+
+        for key, val in item:
+            row.append(val)
+
+        dataframe_data.update({idx: row})
+
+    df = pd.DataFrame.from_dict(dataframe_data, orient="index", columns=HEADERS)
+
+    return df

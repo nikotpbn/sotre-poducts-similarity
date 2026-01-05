@@ -6,28 +6,56 @@
     <title>Document</title>
   </head>
   <body>
-    <div id="file-inputs">
-      <div>
-        <label for="file1">Main Dataset</label>
-        <input type="file" name="file1" id="file1" />
-        <label for="file1">Description Index</label>
-        <input type="number" min="0" name="index1" id="index1" />
+    <form id="input-form">
+      <div id="file-inputs">
+        <div>
+          <label for="file1">Main Dataset</label>
+          <input type="file" name="file1" id="file1" />
+          <label for="file1">Description Index</label>
+          <input type="number" min="0" name="index1" id="index1" />
+        </div>
       </div>
-    </div>
-    <div>
-      <button onclick="submitForm()">Submit</button>
-    </div>
+      <div>
+        <button type="submit">Submit</button>
+      </div>
+    </form>
 
     <button id="add-dataset">Add Dataset</button>
+    <div>
+      <button id="download-excel" hidden>Export Excel</button>
+      <button id="download-csv" hidden>Export CSV</button>
+    </div>
+    <img id="myImageTest" src="" alt="" />
   </body>
 
   <script>
     let fileindex = 1;
 
-    async function submitForm(event) {
-      const formData = new FormData();
+    let reportData = null;
 
-      console.log("List fields here");
+    const form = document.querySelector("#input-form");
+    const xlsDownloadButton = document.getElementById("download-excel");
+    const csvDownloadButton = document.getElementById("download-csv");
+
+    form.addEventListener("submit", submitHandler);
+    xlsDownloadButton.addEventListener("click", downloadHandler);
+    xlsDownloadButton.fileType = "xls";
+    csvDownloadButton.addEventListener("click", downloadHandler);
+    csvDownloadButton.fileType = "csv";
+
+    function getFilenameFromContentDisposition(header) {
+      if (!header) return null;
+
+      const match = header.match(/filename="?([^"]+)"?/);
+      return match ? match[1] : null;
+    }
+
+    async function submitHandler(event) {
+      event.preventDefault();
+
+      const formElement = document.getElementById("myForm");
+
+      const formData = new FormData();
 
       const inputs = document.querySelector("#file-inputs");
       const fileInputs = inputs.querySelectorAll("input[type='file']");
@@ -42,10 +70,53 @@
         formData.append("indices", indexInput.value);
       });
       try {
-        fetch("/results", {
+        res = await fetch("/compute", {
           method: "POST",
           body: formData,
         });
+
+        if (res.status === 200) {
+          const data = await res.json();
+          reportData = data.report;
+
+          xlsDownloadButton.removeAttribute("hidden");
+          csvDownloadButton.removeAttribute("hidden");
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    async function downloadHandler(event) {
+      try {
+        res = await fetch("/export", {
+          method: "POST",
+          body: JSON.stringify({
+            data: reportData,
+            file_type: event.currentTarget.fileType,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (res.status === 200) {
+          // You read the stream in a more advanced way
+          // https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams#consuming_a_fetch_using_asynchronous_iteration
+          const blob = await res.blob();
+
+          const header = res.headers.get("Content-Disposition");
+          const filename = getFilenameFromContentDisposition(header);
+
+          const fileUrl = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = fileUrl;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(fileUrl);
+        }
       } catch (error) {
         console.log(error);
       }
