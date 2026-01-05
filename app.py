@@ -3,7 +3,7 @@ import tempfile
 import pandas as pd
 from uuid import uuid4
 
-from fastapi import FastAPI, Request, UploadFile
+from fastapi import FastAPI, Request, UploadFile, BackgroundTasks
 from fastapi.responses import (
     HTMLResponse,
     JSONResponse,
@@ -72,32 +72,25 @@ async def compute(request: Request, files: list[UploadFile], indices: list[int])
 
 
 @app.post("/export")
-async def export(request: Request, report: Report):
-    df = await report_data_to_dataframe(report.data)
-    ext = None
+async def export(request: Request, report: Report, background_tasks: BackgroundTasks):
     mime_type = None
+    df = await report_data_to_dataframe(report.data)
+    filename = f"report{uuid4()}.{report.file_type}"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".{report.file_type}")
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
-        if report.file_type == "xls":
-            df.to_excel(tmp)
-            ext = "xlsx"
-            mime_type = (
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+    if report.file_type == "xls":
+        df.to_excel(tmp)
+        mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-        else:
-            df.to_csv(tmp)
-            ext = "csv"
-            mime_type = "text/csv"
+    else:
+        df.to_csv(tmp)
+        mime_type = "text/csv"
 
-        tmp_path = tmp.name
-        print(tmp.name)
-
-    filename = f"report{uuid4()}.{ext}"
+    tmp.close()
+    background_tasks.add_task(os.remove, tmp.name)
 
     return FileResponse(
-        path=tmp_path,
+        path=tmp.name,
         filename=filename,
         media_type=mime_type,
-        background=lambda: os.remove(tmp_path),
     )
