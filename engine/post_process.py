@@ -2,7 +2,7 @@ import pandas as pd
 
 
 SIMILARITY_TRESHOLD = 80
-HEADERS = ["Index, Item A", "Item B", "Match Type", "Similarity Score"]
+HEADERS = ["Item A", "Item B", "Match Type", "Similarity Score"]
 
 
 async def generate_report_data(result):

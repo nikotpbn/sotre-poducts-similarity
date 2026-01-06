@@ -78,7 +78,7 @@ async def export(request: Request, report: Report, background_tasks: BackgroundT
     filename = f"report{uuid4()}.{report.file_type}"
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".{report.file_type}")
 
-    if report.file_type == "xls":
+    if report.file_type == "xlsx":
         df.to_excel(tmp)
         mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
