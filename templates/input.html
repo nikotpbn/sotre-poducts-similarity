@@ -4,28 +4,79 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <!-- Bootstrap 5.3 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+    />
   </head>
   <body>
+    <div class="d-flex justify-content-end">
+      <button id="add-dataset" type="button" class="btn btn-primary">
+        Add Dataset <span><i class="bi bi-plus"></i></span>
+      </button>
+    </div>
     <form id="input-form">
       <div id="file-inputs">
-        <div>
-          <label for="file1">Main Dataset</label>
-          <input type="file" name="file1" id="file1" />
-          <label for="file1">Description Index</label>
-          <input type="number" min="0" name="index1" id="index1" />
+        <h2>Datasets</h2>
+        <div class="input-group mb-3">
+          <span class="input-group-text">Description Index</span>
+          <input
+            type="number"
+            min="0"
+            value="0"
+            name="index1"
+            id="index1"
+            class="form-control"
+          />
+          <input
+            type="file"
+            name="file1"
+            id="file1"
+            class="form-control w-50"
+            aria-describedby="inputGroupFileAddon03"
+            aria-label="Upload"
+          />
         </div>
       </div>
       <div>
-        <button type="submit">Submit</button>
+        <button type="submit" class="btn btn-outline-primary">Submit</button>
       </div>
     </form>
 
-    <button id="add-dataset">Add Dataset</button>
     <div>
-      <button id="download-excel" hidden>Export Excel</button>
-      <button id="download-csv" hidden>Export CSV</button>
+      <button
+        id="download-excel"
+        type="button"
+        class="btn btn-outline-success btn-lg"
+        hidden
+      >
+        <span><i class="bi bi-filetype-xlsx"></i></span>
+        <span><i class="bi bi-cloud-download"></i></span>
+      </button>
+
+      <button
+        id="download-csv"
+        type="button"
+        class="btn btn-outline-success btn-lg"
+        hidden
+      >
+        <span><i class="bi bi-filetype-csv"></i></span>
+        <span><i class="bi bi-cloud-download"></i></span>
+      </button>
     </div>
-    <img id="myImageTest" src="" alt="" />
   </body>
 
   <script>
@@ -53,8 +104,6 @@
     async function submitHandler(event) {
       event.preventDefault();
 
-      const formElement = document.getElementById("myForm");
-
       const formData = new FormData();
 
       const inputs = document.querySelector("#file-inputs");
@@ -65,10 +114,12 @@
         let fileInput = document.querySelector(`input#${input.id}`);
         formData.append("files", fileInput.files[0]);
       });
+
       indexInputs.forEach((input) => {
         let indexInput = document.querySelector(`input#${input.id}`);
         formData.append("indices", indexInput.value);
       });
+
       try {
         res = await fetch("/compute", {
           method: "POST",
@@ -127,34 +178,39 @@
 
       const inputs = document.querySelector("#file-inputs");
 
-      const newDiv = document.createElement("div");
-      const fileLabel = document.createElement("label");
-      const fileInput = document.createElement("input");
+      // Create div wrapper & set its class
+      const wrapper = document.createElement("div");
+      wrapper.setAttribute("class", "input-group mb-3");
 
-      const indexLabel = document.createElement("label");
+      // Create span element & set attribute and text
+      const description = document.createElement("span");
+      description.setAttribute("class", "input-group-text");
+      description.innerHTML = "Description Index";
+
+      // Create index input sets is attributes
       const indexInput = document.createElement("input");
+      indexInput.setAttribute("type", "number");
+      indexInput.setAttribute("min", "0");
+      indexInput.setAttribute("value", "0");
+      indexInput.setAttribute("name", "index" + fileindex);
+      indexInput.setAttribute("id", "index" + fileindex);
+      indexInput.setAttribute("class", "form-control");
 
-      fileLabel.setAttribute("for", "file" + fileindex);
-      fileLabel.innerText = "Dataset " + fileindex;
-
+      // Create file input sets is attributes
+      const fileInput = document.createElement("input");
       fileInput.setAttribute("type", "file");
       fileInput.setAttribute("name", "file" + fileindex);
       fileInput.setAttribute("id", "file" + fileindex);
+      fileInput.setAttribute("class", "form-control w-50");
+      fileInput.setAttribute("aria-describedby", "inputGroupFileAddon03");
+      fileInput.setAttribute("class", "form-control w-50");
+      fileInput.setAttribute("aria-label", "Upload");
 
-      indexLabel.setAttribute("for", "index" + fileindex);
-      indexLabel.innerText = "Description Index";
+      wrapper.appendChild(description);
+      wrapper.appendChild(indexInput);
+      wrapper.appendChild(fileInput);
 
-      indexInput.setAttribute("type", "number");
-      indexInput.setAttribute("min", "0");
-      indexInput.setAttribute("name", "index" + fileindex);
-      indexInput.setAttribute("id", "index" + fileindex);
-
-      newDiv.appendChild(fileLabel);
-      newDiv.appendChild(fileInput);
-      newDiv.appendChild(indexLabel);
-      newDiv.appendChild(indexInput);
-
-      inputs.insertAdjacentElement("beforeend", newDiv);
+      inputs.insertAdjacentElement("beforeend", wrapper);
     }
 
     document
