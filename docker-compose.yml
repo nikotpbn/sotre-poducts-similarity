@@ -1,0 +1,7 @@
+services:
+  app:
+    build: .
+    container_name: product-similarity-fastapi
+    restart: always
+    ports:
+      - 80:8000
